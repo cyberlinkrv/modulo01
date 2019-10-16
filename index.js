@@ -33,18 +33,47 @@ server.use(express.json()); // aqui é para informar ao express que ele vai ler 
 //CRUD - Create, Read, Update, Delete
 
 users = ['Divino', 'Marcos', 'Maria'];
+
+//midware Global, onde eu consigo trazer estatus do sistema
+server.use((req, res, next)=>{
+  console.time('Request');
+  console.log(`Método: ${req.method}; URL: ${req.url}`);
+  next();
+  console.timeEnd('Request');
+});
+
+//midware Local
+function checkUserExists(req, res, next){
+  if(!req.body.name){
+    return res.status(400).json({error: 'User name is required'});
+  }
+  return next();
+}
+
+function checkUserInArray(req, res, next){
+  const user = users[req.params.index];
+  if(!user){
+    return res.status(400).json({error: 'User does not exists'});
+  }
+  req.user = user;
+  return next();
+}
+
+
+
+
 //aqui com o metodo GET eu pego todo os dados do usuário
 server.get('/users', (req, res) =>{
   return res.json(users);
 })
 //aqui com o metodo GET digitando a posição da informação
-server.get('/users/:index', (req, res) =>{
-  const { index } = req.params;
-  return res.json(users [index]);
+server.get('/users/:index', checkUserInArray, (req, res) =>{
+  //const { index } = req.params;
+  return res.json(req.user);
 })
 
 //aqui com o metodo POST eu posso criar um usuario - Create
-server.post('/users', (req, res)=>{
+server.post('/users', checkUserExists, (req, res)=>{
   const { name } = req.body; //aqui é o corpo da requisição
   users.push(name); //aqui como o users é um array posso usar o metodo push e colocar o que veio do body
   return res.json(users);
@@ -52,7 +81,7 @@ server.post('/users', (req, res)=>{
 })
 
 //aqui com o metodo PUT eu editar um usuario - Update
-server.put('/users/:index', (req, res) =>{
+server.put('/users/:index', checkUserExists, checkUserInArray,(req, res) =>{
   const { index } = req.params;
   const { name } = req.body;
   
@@ -62,7 +91,7 @@ server.put('/users/:index', (req, res) =>{
 });
 
 //aqui com o metodo DELETE
-server.delete('/users/:index', (req, res) =>{
+server.delete('/users/:index', checkUserInArray, (req, res) =>{
   const { index } = req.params;
 
   users.splice(index, 1);//aqui eu passo a posição do nome no vetor e 1 para indicar que so quero apagar aquela posição apartir
