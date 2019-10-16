@@ -1,5 +1,6 @@
 const express = require("express");
 const server = express();
+server.use(express.json()); // aqui é para informar ao express que ele vai ler json
 
 //Query params = teste?nome=Divino
 //server.get('/teste', (req, res) =>{
@@ -18,11 +19,67 @@ const server = express();
 //})
 
 //Request body = {"name": "Divino", "email": "divino_j_silva@hotmail.com"}
-server.get('', (req, res) =>{
+//const users = ['Divino', 'Marcos', 'Maria'];
+//desta maneira quando eu faço uma requisição na API passando a posição do vetor
+//ele me retorna o nome do usuario que esta naquela posição
+//http://localhost:3000/users/1 retorna Marcos;
+//http://localhost:3000/users/0 retorna Divino
+//server.get('/users/:index', (req, res) =>{
+//  const { index } = req.params;
+//  return res.json(users[index]);
+//})
 
-  
+
+//CRUD - Create, Read, Update, Delete
+
+users = ['Divino', 'Marcos', 'Maria'];
+//aqui com o metodo GET eu pego todo os dados do usuário
+server.get('/users', (req, res) =>{
+  return res.json(users);
+})
+//aqui com o metodo GET digitando a posição da informação
+server.get('/users/:index', (req, res) =>{
+  const { index } = req.params;
+  return res.json(users [index]);
 })
 
+//aqui com o metodo POST eu posso criar um usuario - Create
+server.post('/users', (req, res)=>{
+  const { name } = req.body; //aqui é o corpo da requisição
+  users.push(name); //aqui como o users é um array posso usar o metodo push e colocar o que veio do body
+  return res.json(users);
+
+})
+
+//aqui com o metodo PUT eu editar um usuario - Update
+server.put('/users/:index', (req, res) =>{
+  const { index } = req.params;
+  const { name } = req.body;
+  
+  users [index] = name;
+
+  return res.json(users);
+});
+
+//aqui com o metodo DELETE
+server.delete('/users/:index', (req, res) =>{
+  const { index } = req.params;
+
+  users.splice(index, 1);//aqui eu passo a posição do nome no vetor e 1 para indicar que so quero apagar aquela posição apartir
+
+  return res.send();
+});
 
 
-server.listen(3333);
+server.listen(3000);
+
+
+//DEPENDÊNCIAS
+//esta dependencia faz com que o server da api seja atualizado sozinho quando 
+//eu fizer qualquer alteração; a flegue -D no final é para executar em modo
+//Desenvolverdo
+// => yarn add nodemon -D 
+//depois de instalada pode ser executada com o comando yarn nodemon index.js
+//porém editamos o arquivo pakage.json e colocamos o seguinte
+//"scripts":{"dev": "nodemon index.js"}
+//com isso podemos dar somente o comando yarn dev
